@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libpng-dev \
     wget \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
