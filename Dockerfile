@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 ENV YOLO_MODEL=yolov8n.pt
+ENV TORCH_SERIALIZATION_WEIGHTS_ONLY=0
 
 # Install system dependencies: OpenCV, ImageMagick, and dependencies for YOLOv8
 RUN apt-get update && apt-get install -y \
