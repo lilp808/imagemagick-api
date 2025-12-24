@@ -30,9 +30,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download YOLO model to reduce cold start time
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
-
 # Copy app code
 COPY . .
 
