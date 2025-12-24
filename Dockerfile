@@ -4,13 +4,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
+# Install system dependencies + tesseract
 RUN apt-get update && apt-get install -y \
-    imagemagick \
     tesseract-ocr \
     tesseract-ocr-tha \
-    build-essential \
-    cmake \
-    libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
