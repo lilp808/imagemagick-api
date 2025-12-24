@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
+    libgl1 \
     libjpeg-dev \
     libpng-dev \
     wget \
@@ -43,4 +42,4 @@ RUN mkdir -p /tmp
 EXPOSE ${PORT}
 
 # Run FastAPI with uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT}
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
