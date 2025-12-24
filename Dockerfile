@@ -23,8 +23,10 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# อัพเกรด pip ก่อน install
-RUN pip install --upgrade pip
+# อัพเกรด pip
+RUN python -m pip install --upgrade pip
+
+# ติดตั้ง dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
