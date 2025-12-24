@@ -5,7 +5,8 @@ import numpy as np
 import uuid
 import os
 import pytesseract
-import traceback
+import traceback 
+
 import logging
 
 logging.basicConfig(level=logging.INFO)
