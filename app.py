@@ -5,6 +5,7 @@ import numpy as np
 import uuid
 import os
 import subprocess
+import shutil
 
 app = FastAPI()
 
@@ -17,10 +18,21 @@ async def enhance_all_plates(file: UploadFile = File(...)):
 
     # โหลดภาพด้วย OpenCV
     img = cv2.imread(input_path)
+    if img is None:
+        return {"detail": "Cannot read input image"}
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # ใช้ Haar Cascade สำหรับป้ายทะเบียน (ไทย / generic)
-    plate_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_russian_plate_number.xml")
+    # ตรวจสอบ ImageMagick
+    if not shutil.which("convert"):
+        return {"detail": "ImageMagick 'convert' command not found"}
+
+    # ใช้ Haar Cascade สำหรับป้ายทะเบียน
+    cascade_path = cv2.data.haarcascades + "haarcascade_russian_plate_number.xml"
+    plate_cascade = cv2.CascadeClassifier(cascade_path)
+    if plate_cascade.empty():
+        return {"detail": f"Failed to load cascade: {cascade_path}"}
+
     plates = plate_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(60,20))
 
     cropped_files = []
@@ -45,6 +57,7 @@ async def enhance_all_plates(file: UploadFile = File(...)):
         cropped_files.append(out_path)
 
     if not cropped_files:
+        os.remove(input_path)
         return {"detail": "No plates detected"}
 
     # รวมภาพทั้งหมดเป็น 1 ภาพ (stack แนวตั้ง)
@@ -64,8 +77,14 @@ async def enhance_all_plates(file: UploadFile = File(...)):
 
     # ลบไฟล์ชั่วคราว
     for f in cropped_files:
-        os.remove(f)
-    os.remove(input_path)
+        try:
+            os.remove(f)
+        except:
+            pass
+    try:
+        os.remove(input_path)
+    except:
+        pass
 
     return FileResponse(
         final_path,

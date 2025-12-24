@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     libxrender-dev \
     libjpeg-dev \
     libpng-dev \
+    libtiff5-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # สร้าง working directory
