@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
-# ติดตั้ง system dependencies สำหรับ OpenCV และ ImageMagick
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     imagemagick \
     build-essential \
@@ -23,15 +23,13 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# อัพเกรด pip
+# Upgrade pip and install dependencies
 RUN python -m pip install --upgrade pip
-
-# ติดตั้ง dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 EXPOSE ${PORT}
 
-# รัน FastAPI ด้วย Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run FastAPI on dynamic PORT
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]
