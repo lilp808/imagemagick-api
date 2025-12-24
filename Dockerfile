@@ -1,10 +1,12 @@
+# Base image Python slim
 FROM python:3.11-slim
 
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
-# Install system dependencies
+# Install system dependencies: OpenCV, ImageMagick, Tesseract OCR
 RUN apt-get update && apt-get install -y \
     imagemagick \
     build-essential \
@@ -15,21 +17,24 @@ RUN apt-get update && apt-get install -y \
     libxrender-dev \
     libjpeg-dev \
     libpng-dev \
-    libtiff5-dev \
-    libwebp-dev \
+    tesseract-ocr \
+    tesseract-ocr-tha \
     && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
+# Copy requirements
 COPY requirements.txt .
 
-# Upgrade pip and install dependencies
-RUN python -m pip install --upgrade pip
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy all code
 COPY . .
 
+# Expose Railway port
 EXPOSE ${PORT}
 
-# Run FastAPI on dynamic PORT
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]
+# Run FastAPI with uvicorn
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
