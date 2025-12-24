@@ -7,11 +7,12 @@ import os
 import subprocess
 import shutil
 import traceback
+import pytesseract
 
 app = FastAPI()
 
-@app.post("/enhance_all_plate_like")
-async def enhance_all_plate_like(file: UploadFile = File(...)):
+@app.post("/enhance_thai_plates")
+async def enhance_thai_plates(file: UploadFile = File(...)):
     try:
         # 1️⃣ Prepare input
         input_path = f"/tmp/{uuid.uuid4()}.jpg"
@@ -40,18 +41,35 @@ async def enhance_all_plate_like(file: UploadFile = File(...)):
         for i, cnt in enumerate(contours):
             x, y, w, h = cv2.boundingRect(cnt)
             ratio = w / h
-            # filter approximate plate shapes
-            if 2 < ratio < 6 and w > 30 and h > 10:
-                crop_img = img[y:y+h, x:x+w]
-                crop_path = f"/tmp/crop_{i}_{uuid.uuid4()}.jpg"
-                cv2.imwrite(crop_path, crop_img)
-                cropped_files.append(crop_path)
+
+            # 5️⃣ Filter by aspect ratio and size (typical Thai plate)
+            if not (2.5 < ratio < 6 and w > 40 and h > 15):
+                continue
+
+            crop_img = img[y:y+h, x:x+w]
+
+            # 6️⃣ Optional: filter by mean color (white/yellow/blue typical plate background)
+            mean_color = cv2.mean(crop_img)[:3]  # BGR
+            if sum(mean_color)/3 < 80:  # too dark → likely not plate
+                continue
+
+            # 7️⃣ Optional: OCR confirm (text contains Thai/number)
+            try:
+                text = pytesseract.image_to_string(crop_img, lang='tha').strip()
+                if not text:  # empty → skip
+                    continue
+            except:
+                pass
+
+            crop_path = f"/tmp/crop_{i}_{uuid.uuid4()}.jpg"
+            cv2.imwrite(crop_path, crop_img)
+            cropped_files.append(crop_path)
 
         if len(cropped_files) == 0:
             os.remove(input_path)
-            return {"detail": "No plate-like objects detected"}
+            return {"detail": "No Thai plate-like objects detected"}
 
-        # 5️⃣ Stack cropped images vertically
+        # 8️⃣ Stack cropped images vertically
         imgs_to_stack = [cv2.imread(f) for f in cropped_files]
         max_width = max(img.shape[1] for img in imgs_to_stack)
         total_height = sum(img.shape[0] for img in imgs_to_stack)
@@ -66,7 +84,7 @@ async def enhance_all_plate_like(file: UploadFile = File(...)):
         stacked_path = f"/tmp/stacked_{uuid.uuid4()}.jpg"
         cv2.imwrite(stacked_path, stacked_img)
 
-        # 6️⃣ Enhance with ImageMagick
+        # 9️⃣ Enhance with ImageMagick
         final_path = f"/tmp/final_{uuid.uuid4()}.jpg"
         cmd = [
             "convert", stacked_path,
@@ -77,18 +95,18 @@ async def enhance_all_plate_like(file: UploadFile = File(...)):
         ]
         subprocess.run(cmd, check=True)
 
-        # 7️⃣ Clean temp files
+        # 10️⃣ Clean temp files
         for f in cropped_files + [input_path, stacked_path]:
             try:
                 os.remove(f)
             except:
                 pass
 
-        # 8️⃣ Return final image
+        # 11️⃣ Return final image
         return FileResponse(
             final_path,
             media_type="image/jpeg",
-            filename="enhanced_plate_like.jpg"
+            filename="enhanced_thai_plates.jpg"
         )
 
     except Exception as e:
