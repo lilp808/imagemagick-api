@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
+ENV PORT=8080
 
 # ติดตั้ง system dependencies สำหรับ OpenCV และ ImageMagick
 RUN apt-get update && apt-get install -y \
@@ -33,4 +33,5 @@ COPY . .
 
 EXPOSE ${PORT}
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# รัน FastAPI ด้วย Uvicorn
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
